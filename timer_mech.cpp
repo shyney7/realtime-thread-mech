@@ -5,7 +5,7 @@
 #include <chrono>               //timing lib
 #include <mutex>                //mutex is needed for cond_var
 #include <condition_variable>
-#include <sys/prctl.h>          //prctl set timerslack for nanosleep
+//#include <sys/prctl.h>          //prctl set timerslack for nanosleep
 #include <atomic>               //atomic bool for predefined behavior /non copiable non chacheable etc. (prevent one thread to read a old value from a copy / chached state)
 
 
@@ -53,7 +53,7 @@ void cont_func() {
         std::cout << "Loop No.: " << k << '\n';
         mu.unlock();
 
-        std::this_thread::sleep_until(start+std::chrono::nanoseconds(500000000));
+        std::this_thread::sleep_until(start+std::chrono::nanoseconds(500000000)); //500ms
 
         if(task_finished) {
             //wake up task with cond var
@@ -68,7 +68,7 @@ void cont_func() {
             mu.lock();
             std::cout << "Task time violation restarting thread...\n";
             mu.unlock();
-            //taskt.std::thread::~thread();         //calling the destructor doesnt work even if the thread is either joined nor detached
+            //taskt.std::thread::~thread();         //calling the destructor doesnt work even if the thread is neither joined nor detached
                                                     //std is defined to abort programm if a thread runs out of scope
             //std::thread taskt(task_func);
             //setScheduling(taskt, SCHED_FIFO, 30);
@@ -79,14 +79,6 @@ void cont_func() {
             setScheduling(taskt, SCHED_FIFO, 30);
             nativeID = taskt.native_handle();
             taskt.detach();
-
-            
-            /*
-            pthread_cancel(taskt.native_handle());
-            pthread_join(taskt.native_handle(), NULL);
-            taskt = std::thread{task_func};
-            setScheduling(taskt, SCHED_FIFO, 30);
-            */
         }
     }
 
@@ -95,11 +87,11 @@ void cont_func() {
 //task func
 void task_func() {
 
-    int simulation_time(100000000);
+    int simulation_time(100000000);  //100ms
 
     while(1) {
         if (k%50 == 0) {
-            simulation_time += 900000000;
+            simulation_time += 900000000;  // + 900ms
         }
         
         std::this_thread::sleep_for(std::chrono::nanoseconds(simulation_time));
